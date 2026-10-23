@@ -1,8 +1,12 @@
 import React from 'react'
 import Link from 'next/link'
-import { DEMO_RESEARCHER } from '@/lib/auth/demo-user'
+import { createClient } from '@/lib/supabase/server'
+import { signOutAction } from '@/app/actions/auth'
 
-export function Navbar() {
+export async function Navbar() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -37,8 +41,7 @@ export function Navbar() {
           </Link>
         </div>
 
-        {/* Researcher Demo Identity */}
-        <div className="flex items-center gap-3">
+        {user && <div className="flex items-center gap-3">
           <div className="flex items-center gap-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-full py-1.5 px-3">
             {/* Avatar Placeholder */}
             <div className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-semibold text-xs flex items-center justify-center">
@@ -47,18 +50,17 @@ export function Navbar() {
             {/* User Details */}
             <div className="flex flex-col text-left">
               <span className="text-xs font-medium text-slate-900 dark:text-slate-200 leading-none">
-                {DEMO_RESEARCHER.display_name}
+                {user.email?.split('@')[0]}
               </span>
               <span className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight mt-0.5">
-                {DEMO_RESEARCHER.email}
+                {user.email}
               </span>
             </div>
-            {/* Demo Mode Badge */}
-            <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-              Demo Mode
-            </span>
           </div>
-        </div>
+          <form action={signOutAction}>
+            <button type="submit" className="text-sm text-slate-600 hover:text-indigo-600 dark:text-slate-300">Sign out</button>
+          </form>
+        </div>}
       </div>
     </header>
   )

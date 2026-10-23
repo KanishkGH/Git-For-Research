@@ -1,4 +1,5 @@
 import type { ArtifactType, IngestionInput } from '@/lib/ingestion/types'
+export { MAX_FILE_SIZE_BYTES } from '@/lib/ingestion/limits'
 
 export type DetectedType = ArtifactType | 'unsupported'
 
@@ -7,8 +8,6 @@ export interface DetectionResult {
   confidence: 'high' | 'medium' | 'low'
   mimeType: string
 }
-
-export const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024 // 15MB
 
 /**
  * Heuristically inspects a JSON structure to detect whether it is a ChatGPT or Claude export.

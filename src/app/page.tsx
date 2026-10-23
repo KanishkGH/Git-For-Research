@@ -1,4 +1,4 @@
-import { getCurrentDemoUser } from '@/lib/auth/demo-user'
+import { getCurrentUser } from '@/lib/auth/current-user'
 import { listUserWorkspaces } from '@/lib/db/workspaces'
 import { WorkspaceList } from '@/components/workspaces/WorkspaceList'
 import type { WorkspaceRow } from '@/types/database'
@@ -11,7 +11,7 @@ export default async function HomePage() {
 
   try {
     // 1. Resolve demo researcher identity
-    const user = await getCurrentDemoUser()
+    const user = await getCurrentUser()
 
     // 2. Fetch all workspaces the user belongs to
     workspaces = await listUserWorkspaces(user.id)

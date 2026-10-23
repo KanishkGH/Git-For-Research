@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { getCurrentDemoUser } from '@/lib/auth/demo-user'
+import { getCurrentUser } from '@/lib/auth/current-user'
 import { getWorkspaceById } from '@/lib/db/workspaces'
 import { getArtifactById } from '@/lib/db/artifacts'
 import { getBranchById, updateBranchHead } from '@/lib/db/branches'
@@ -66,7 +66,7 @@ export async function prepareMergeAction(
   formData: FormData
 ): Promise<ActionResult<PrepareMergeResult>> {
   try {
-    const user = await getCurrentDemoUser()
+    const user = await getCurrentUser()
 
     const rawWorkspaceId = formData.get('workspaceId')
     const rawArtifactId = formData.get('artifactId')
@@ -253,7 +253,7 @@ export async function completeMergeAction(
   formData: FormData
 ): Promise<ActionResult<CompleteMergeResult>> {
   try {
-    const user = await getCurrentDemoUser()
+    const user = await getCurrentUser()
 
     const rawWorkspaceId = formData.get('workspaceId')
     const rawArtifactId = formData.get('artifactId')

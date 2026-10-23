@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { getCurrentDemoUser } from '@/lib/auth/demo-user'
+import { getCurrentUser } from '@/lib/auth/current-user'
 import { getWorkspaceById } from '@/lib/db/workspaces'
 import { getArtifactById } from '@/lib/db/artifacts'
 import { getCommitById } from '@/lib/db/commits'
@@ -25,7 +25,7 @@ export async function createBranchAction(
 ): Promise<ActionResult<BranchRow>> {
   try {
     // 1. Resolve demo researcher identity
-    const user = await getCurrentDemoUser()
+    const user = await getCurrentUser()
 
     // 2. Extract and sanitize inputs
     const rawWorkspaceId = formData.get('workspaceId')

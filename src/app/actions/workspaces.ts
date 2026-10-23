@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { getCurrentDemoUser } from '@/lib/auth/demo-user'
+import { getCurrentUser } from '@/lib/auth/current-user'
 import { createWorkspace } from '@/lib/db/workspaces'
 import type { WorkspaceRow } from '@/types/database'
 
@@ -19,7 +19,7 @@ export async function createWorkspaceAction(
 ): Promise<ActionResult<WorkspaceRow>> {
   try {
     // 1. Resolve demo researcher identity
-    const user = await getCurrentDemoUser()
+    const user = await getCurrentUser()
 
     // 2. Extract and sanitize form values
     const rawName = formData.get('name')

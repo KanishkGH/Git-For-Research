@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentDemoUser } from '@/lib/auth/demo-user'
+import { getCurrentUser } from '@/lib/auth/current-user'
 import { getWorkspaceById, getWorkspaceMembership } from '@/lib/db/workspaces'
 import { createArtifact, deleteArtifact } from '@/lib/db/artifacts'
 import { createCommit } from '@/lib/db/commits'
@@ -13,6 +13,7 @@ import {
   type IngestionMetadata,
   type ArtifactType,
 } from '@/lib/ingestion'
+import { MAX_FILE_SIZE_MB } from '@/lib/ingestion/limits'
 import type { ArtifactRow, CommitRow, BranchRow } from '@/types/database'
 
 export type ActionResult<T> =
@@ -48,7 +49,7 @@ export async function ingestArtifactAction(
 
   try {
     // 1. Resolve demo researcher identity
-    const user = await getCurrentDemoUser()
+    const user = await getCurrentUser()
 
     // 2. Validate workspaceId
     const rawWorkspaceId = formData.get('workspaceId')
@@ -107,7 +108,7 @@ export async function ingestArtifactAction(
     if (fileSize > MAX_FILE_SIZE_BYTES) {
       return {
         success: false,
-        error: `File size (${(fileSize / (1024 * 1024)).toFixed(1)}MB) exceeds the maximum allowed limit of 15MB.`,
+        error: `File size (${(fileSize / (1024 * 1024)).toFixed(1)}MB) exceeds the maximum allowed limit of ${MAX_FILE_SIZE_MB}MB.`,
         code: 'FILE_TOO_LARGE',
       }
     }

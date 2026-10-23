@@ -42,7 +42,15 @@ export async function middleware(request: NextRequest) {
 
   // Refresh the session — this is the only purpose of this middleware.
   // Do NOT remove this line; it is required for @supabase/ssr to work correctly.
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user && request.nextUrl.pathname !== '/login') {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  if (user && request.nextUrl.pathname === '/login') {
+    return NextResponse.redirect(new URL('/', request.url))
+  }
 
   return supabaseResponse
 }

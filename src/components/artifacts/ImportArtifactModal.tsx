@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { ingestArtifactAction, type IngestedArtifactPayload } from '@/app/actions/ingest'
+import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/ingestion/limits'
 
 export interface ImportArtifactModalProps {
   workspaceId: string
@@ -52,8 +53,8 @@ export function ImportArtifactModal({
     setError(null)
     setSuccessPayload(null)
 
-    if (file.size > 15 * 1024 * 1024) {
-      setError('File exceeds maximum size limit of 15MB.')
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setError(`File exceeds maximum size limit of ${MAX_FILE_SIZE_MB}MB.`)
       return
     }
 
@@ -253,7 +254,7 @@ export function ImportArtifactModal({
                     Markdown (.md, .txt), PDF papers (.pdf), or ChatGPT/Claude exports (.json)
                   </p>
                   <span className="inline-block mt-3 text-[11px] font-mono text-slate-400">
-                    Max size: 15MB
+                    Max size: {MAX_FILE_SIZE_MB}MB
                   </span>
                 </div>
               ) : (

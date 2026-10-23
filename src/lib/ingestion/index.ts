@@ -1,5 +1,6 @@
 import type { IngestionInput, IngestionResult } from '@/lib/ingestion/types'
 import { detectArtifactType, MAX_FILE_SIZE_BYTES } from '@/lib/ingestion/detector'
+import { MAX_FILE_SIZE_MB } from '@/lib/ingestion/limits'
 import { markdownParser } from '@/lib/ingestion/markdown-parser'
 import { chatGptParser } from '@/lib/ingestion/chatgpt-parser'
 import { claudeParser } from '@/lib/ingestion/claude-parser'
@@ -32,7 +33,7 @@ export async function parseArtifact(
     if (input.buffer.length > MAX_FILE_SIZE_BYTES) {
       return {
         success: false,
-        error: `File size (${(input.buffer.length / (1024 * 1024)).toFixed(1)}MB) exceeds the maximum allowed size of 15MB.`,
+        error: `File size (${(input.buffer.length / (1024 * 1024)).toFixed(1)}MB) exceeds the maximum allowed size of ${MAX_FILE_SIZE_MB}MB.`,
         code: 'FILE_TOO_LARGE',
       }
     }
