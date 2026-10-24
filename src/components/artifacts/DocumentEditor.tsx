@@ -156,7 +156,7 @@ export function DocumentEditor({
           className={`flex-1 w-full p-4 rounded-lg font-mono text-sm leading-relaxed border transition-colors resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
             isViewingHistory
               ? 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 cursor-not-allowed opacity-90'
-              : 'bg-white dark:bg-slate-850 text-slate-900 dark:text-slate-100 border-slate-200 dark:border-slate-750'
+              : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-200 dark:border-slate-700'
           }`}
         />
       </div>

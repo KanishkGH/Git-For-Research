@@ -74,13 +74,13 @@ export function CommitHistoryList({
                 className={`p-3 rounded-lg border text-xs transition-all ${
                   isSelected
                     ? 'bg-indigo-50/50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800'
-                    : 'bg-slate-50/50 dark:bg-slate-850/50 border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
+                    : 'bg-slate-50/50 dark:bg-slate-800/50 border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
                 }`}
               >
                 {/* Header: Hash, Badges, Timestamp */}
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-mono text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-200/60 dark:bg-slate-750 px-1.5 py-0.5 rounded">
+                    <span className="font-mono text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-200/60 dark:bg-slate-700 px-1.5 py-0.5 rounded">
                       {shortHash}
                     </span>
                     {isHead && (

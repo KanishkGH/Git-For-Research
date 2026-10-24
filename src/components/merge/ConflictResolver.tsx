@@ -155,7 +155,7 @@ export function ConflictResolver({
 
               {/* Side-by-Side Comparison */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
-                <div className="bg-slate-50 dark:bg-slate-850 p-3 rounded-lg border border-slate-200 dark:border-slate-750">
+                <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                     Current: {targetBranchName}
                   </span>

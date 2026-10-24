@@ -19,7 +19,7 @@ export function SemanticDiffViewer({
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs">
       {/* Diff Summary Bar */}
-      <div className="px-4 py-3 bg-slate-50 dark:bg-slate-850 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4 text-xs">
+      <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4 text-xs">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-slate-700 dark:text-slate-300">
             Semantic Changes:

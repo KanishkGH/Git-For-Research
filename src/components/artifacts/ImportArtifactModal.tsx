@@ -234,7 +234,7 @@ export function ImportArtifactModal({
                   className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
                     isDragging
                       ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/30'
-                      : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 bg-slate-50/50 dark:bg-slate-850/50'
+                      : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 bg-slate-50/50 dark:bg-slate-800/50'
                   }`}
                 >
                   <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
@@ -259,7 +259,7 @@ export function ImportArtifactModal({
                 </div>
               ) : (
                 /* Selected File Card */
-                <div className="bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-750 rounded-xl p-4 flex items-center justify-between gap-3">
+                <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 overflow-hidden">
                     <div className="w-9 h-9 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
