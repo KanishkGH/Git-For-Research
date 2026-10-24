@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { createWorkspaceAction } from '@/app/actions/workspaces'
@@ -14,6 +15,7 @@ export function CreateWorkspaceModal({
   isOpen,
   onClose,
 }: CreateWorkspaceModalProps) {
+  const router = useRouter()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -47,6 +49,7 @@ export function CreateWorkspaceModal({
         setDescription('')
         setError(null)
         onClose()
+        router.refresh()
       } else {
         setError(result.error)
       }

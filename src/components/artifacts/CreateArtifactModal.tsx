@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { createArtifactAction } from '@/app/actions/artifacts'
@@ -45,6 +46,7 @@ export function CreateArtifactModal({
   isOpen,
   onClose,
 }: CreateArtifactModalProps) {
+  const router = useRouter()
   const [name, setName] = useState('')
   const [artifactType, setArtifactType] = useState<ArtifactType>('markdown')
   const [originalFilename, setOriginalFilename] = useState('')
@@ -89,6 +91,7 @@ export function CreateArtifactModal({
         setInitialContent('')
         setError(null)
         onClose()
+        router.refresh()
       } else {
         setError(result.error)
       }
