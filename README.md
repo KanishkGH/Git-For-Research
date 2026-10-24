@@ -81,7 +81,14 @@ Visit [http://localhost:3000](http://localhost:3000) to view the app.
 
 Run `supabase/migrations/001_identity.sql` through `011_change_awareness.sql` in order in the Supabase SQL Editor. If migrations 001–007 were already applied, run only 008–011. Migration 008 enables pgvector and version-aware research search. Migration 009 opens access to workspace members. Migration 010 enables durable Yjs updates and Supabase Realtime presence. Migration 011 tracks each researcher's last seen branch head.
 
-For separate researcher accounts, enable email/password sign-ups in Supabase Authentication. Each researcher signs up and signs in once, then the workspace owner adds their email as an editor or viewer. In Supabase Realtime settings, disable public channel access so the private workspace presence policies in migration 010 apply. In Supabase Auth URL Configuration, set the production Site URL after deployment for confirmation links.
+### Google sign-in setup
+
+1. In Google Cloud, configure the OAuth consent screen and create an OAuth client of type **Web application**. Add your deployed app origin (for example, `https://your-app.example.com`) to **Authorized JavaScript origins**. Add `http://localhost:3000` while testing locally.
+2. In Supabase Authentication → Providers → Google, enable Google and copy the Supabase callback URL shown there (usually `https://<project-ref>.supabase.co/auth/v1/callback`). Add **that URL** to the Google client's **Authorized redirect URIs**, then enter its Client ID and Client Secret in Supabase. Keep the Google Client Secret in Google Cloud and Supabase, not in this repository or the app's environment variables.
+3. In Supabase Authentication → URL Configuration, set **Site URL** to your deployed app origin and add `https://your-app.example.com/auth/callback` to **Redirect URLs**. Add `http://localhost:3000/auth/callback` for local testing. Add each preview deployment's callback URL if you use previews.
+4. Deploy this code, then sign in with Google at `/login`. Each researcher signs in once before the workspace owner adds their Google account email as an editor or viewer. Supabase automatically links an existing email/password account when the Google account has the same verified email; check existing users before switching off the email provider.
+
+In Supabase Realtime settings, disable public channel access so the private workspace presence policies in migration 010 apply.
 
 On each workspace page, **Index research** processes existing and new commit versions in small batches. The OpenAI key is needed for indexing and research questions. Live editing and presence use the same Supabase project; no separate Yjs server is required.
 

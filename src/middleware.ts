@@ -44,7 +44,7 @@ export async function middleware(request: NextRequest) {
   // Do NOT remove this line; it is required for @supabase/ssr to work correctly.
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user && request.nextUrl.pathname !== '/login') {
+  if (!user && request.nextUrl.pathname !== '/login' && request.nextUrl.pathname !== '/auth/callback') {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
