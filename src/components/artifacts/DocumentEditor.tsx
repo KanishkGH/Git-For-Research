@@ -4,6 +4,7 @@ import React, { useState, useEffect, useTransition } from 'react'
 import type { BranchRow, CommitRow } from '@/types/database'
 import { Button } from '@/components/ui/Button'
 import { createCommitAction } from '@/app/actions/commits'
+import { useCollaborativeText } from '@/lib/collaboration/useCollaborativeText'
 
 export interface DocumentEditorProps {
   workspaceId: string
@@ -13,6 +14,9 @@ export interface DocumentEditorProps {
   isViewingHistory: boolean
   onCommitCreated: (newCommit: CommitRow) => void
   onReturnToHead: () => void
+  userId: string
+  displayName: string
+  canEdit: boolean
 }
 
 export function DocumentEditor({
@@ -23,17 +27,24 @@ export function DocumentEditor({
   isViewingHistory,
   onCommitCreated,
   onReturnToHead,
+  userId,
+  displayName,
+  canEdit,
 }: DocumentEditorProps) {
-  const [content, setContent] = useState(currentCommit?.content || '')
   const [message, setMessage] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const live = useCollaborativeText({
+    workspaceId, artifactId, branchId: activeBranch.id, userId, displayName, canEdit,
+  })
+  const content = isViewingHistory || !live.ready
+    ? currentCommit?.content ?? ''
+    : live.content
 
-  // Sync content whenever currentCommit changes (e.g. switching branch or selecting commit)
+  // Clear action errors when switching to a different snapshot.
   useEffect(() => {
-    setContent(currentCommit?.content || '')
     setError(null)
-  }, [currentCommit?.id, currentCommit?.content])
+  }, [currentCommit?.id])
 
   const handleCommitSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -41,6 +52,10 @@ export function DocumentEditor({
 
     if (isViewingHistory) {
       setError('Cannot commit to a historical snapshot. Return to HEAD to save changes.')
+      return
+    }
+    if (!canEdit || !live.ready) {
+      setError('The live editor is not ready for changes.')
       return
     }
 
@@ -114,6 +129,14 @@ export function DocumentEditor({
       )}
 
       {/* Editor Main Canvas */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-2 text-xs dark:border-slate-800">
+        <span role="status" className="text-slate-500">{live.status}</span>
+        <span className="text-slate-600 dark:text-slate-300">
+          {live.collaborators.length ? live.collaborators.map((person) =>
+            `${person.displayName} (${person.status})`
+          ).join(', ') : 'No other researchers online'}
+        </span>
+      </div>
       <div className="flex-1 p-4 sm:p-5 flex flex-col min-h-[360px]">
         <label
           htmlFor="document-content-area"
@@ -124,9 +147,11 @@ export function DocumentEditor({
         <textarea
           id="document-content-area"
           value={content}
-          onChange={(e) => setContent(e.target.value)}
-          readOnly={isViewingHistory || isPending}
-          disabled={isViewingHistory || isPending}
+          onChange={(e) => live.replaceText(e.target.value)}
+          onFocus={() => live.setPresenceStatus('editing')}
+          onBlur={() => live.setPresenceStatus('viewing')}
+          readOnly={isViewingHistory || isPending || !live.ready || !canEdit}
+          disabled={isViewingHistory || isPending || !live.ready || !canEdit}
           placeholder="# Document Content&#10;&#10;Start writing or editing your research text here..."
           className={`flex-1 w-full p-4 rounded-lg font-mono text-sm leading-relaxed border transition-colors resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
             isViewingHistory
@@ -137,7 +162,7 @@ export function DocumentEditor({
       </div>
 
       {/* Commit Action Bar (Active HEAD only) */}
-      {!isViewingHistory && (
+      {!isViewingHistory && canEdit && (
         <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 p-4 sm:px-5">
           {error && (
             <div className="mb-3 p-2.5 text-xs rounded-lg bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 flex items-center gap-2">
@@ -180,7 +205,7 @@ export function DocumentEditor({
               variant="primary"
               size="md"
               loading={isPending}
-              disabled={isPending || !message.trim()}
+              disabled={isPending || !live.ready || !message.trim()}
               className="shrink-0 text-xs sm:text-sm"
             >
               <svg

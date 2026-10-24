@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/lib/auth/current-user'
 import { getWorkspaceById } from '@/lib/db/workspaces'
 import { getArtifactById } from '@/lib/db/artifacts'
 import { getBranchById, updateBranchHead } from '@/lib/db/branches'
-import { createCommit } from '@/lib/db/commits'
+import { createCommit, deleteUnreferencedCommit } from '@/lib/db/commits'
 import type { CommitRow } from '@/types/database'
 
 export type ActionResult<T> =
@@ -122,11 +122,12 @@ export async function createCommitAction(
 
     // 8. Advance the branch head pointer to the new commit
     try {
-      await updateBranchHead(branchId, commit.id)
+      await updateBranchHead(branchId, commit.id, parentCommitId)
     } catch (err) {
+      try { await deleteUnreferencedCommit(commit.id) } catch { /* report original conflict */ }
       return {
         success: false,
-        error: `Commit created (${commit.id}), but failed to update branch head pointer: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        error: err instanceof Error ? err.message : 'Could not advance branch head.',
       }
     }
 

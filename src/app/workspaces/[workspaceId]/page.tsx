@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation'
-import { getWorkspaceById, getWorkspaceMembers } from '@/lib/db/workspaces'
+import { getWorkspaceById, getWorkspaceMembers, getWorkspaceMembership } from '@/lib/db/workspaces'
 import { listWorkspaceArtifacts } from '@/lib/db/artifacts'
 import { WorkspaceDetailClient } from '@/components/workspaces/WorkspaceDetailClient'
+import { getCurrentUser } from '@/lib/auth/current-user'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,6 +34,9 @@ export default async function WorkspaceDetailPage({ params }: PageProps) {
     getWorkspaceMembers(workspaceId),
     listWorkspaceArtifacts(workspaceId),
   ])
+  const user = await getCurrentUser()
+  const membership = await getWorkspaceMembership(workspaceId, user.id)
+  if (!membership) notFound()
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -40,6 +44,8 @@ export default async function WorkspaceDetailPage({ params }: PageProps) {
         workspace={workspace}
         members={members}
         artifacts={artifacts}
+        canManageMembers={workspace.owner_id === user.id}
+        canEdit={membership.role !== 'viewer'}
       />
     </div>
   )

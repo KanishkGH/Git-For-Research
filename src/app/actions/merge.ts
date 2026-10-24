@@ -5,7 +5,8 @@ import { getCurrentUser } from '@/lib/auth/current-user'
 import { getWorkspaceById } from '@/lib/db/workspaces'
 import { getArtifactById } from '@/lib/db/artifacts'
 import { getBranchById, updateBranchHead } from '@/lib/db/branches'
-import { getCommitById, getCommitHistory, createCommit } from '@/lib/db/commits'
+import { getCommitById, getCommitHistory, createCommit, deleteUnreferencedCommit } from '@/lib/db/commits'
+import { syncMergeToLiveDraft } from '@/lib/collaboration/sync-merge'
 import {
   createMergeRecord,
   getMergeRecordById,
@@ -50,6 +51,7 @@ export interface CompleteMergeResult {
   mergeRecord: MergeRecordRow
   mergeCommit: CommitRow
   targetBranch: BranchRow
+  collaborationWarning?: string
 }
 
 const UUID_REGEX =
@@ -380,11 +382,12 @@ export async function completeMergeAction(
 
     // 7. Step B: Advance target branch HEAD to merge commit
     try {
-      await updateBranchHead(targetBranch.id, mergeCommit.id)
+      await updateBranchHead(targetBranch.id, mergeCommit.id, targetBranch.head_commit_id)
     } catch (err) {
+      try { await deleteUnreferencedCommit(mergeCommit.id) } catch { /* report original conflict */ }
       return {
         success: false,
-        error: `Merge commit created (${mergeCommit.id}), but failed to advance target branch HEAD: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        error: err instanceof Error ? err.message : 'Could not advance target branch head.',
       }
     }
 
@@ -411,6 +414,15 @@ export async function completeMergeAction(
       }
     }
 
+    // Keep the live draft aligned with the new merge snapshot. The merge is
+    // already committed, so report a sync failure without inviting a retry.
+    let collaborationWarning: string | undefined
+    try {
+      await syncMergeToLiveDraft(workspaceId, artifactId, targetBranch.id, resolvedContent, user.id)
+    } catch (error) {
+      collaborationWarning = error instanceof Error ? error.message : 'Could not update the live draft.'
+    }
+
     // 9. Revalidate routes
     revalidatePath(`/workspaces/${workspaceId}/artifacts/${artifactId}`)
     revalidatePath(`/workspaces/${workspaceId}`)
@@ -424,6 +436,7 @@ export async function completeMergeAction(
           ...targetBranch,
           head_commit_id: mergeCommit.id,
         },
+        collaborationWarning,
       },
     }
   } catch (error) {

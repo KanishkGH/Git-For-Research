@@ -56,6 +56,13 @@ export async function getCommitById(id: string): Promise<CommitRow | null> {
   return data
 }
 
+/** Remove a commit left unreachable when another editor advanced the branch first. */
+export async function deleteUnreferencedCommit(id: string): Promise<void> {
+  const supabase = await createClient()
+  const { error } = await supabase.from('commits').delete().eq('id', id)
+  if (error) throw new Error(`Could not remove unreferenced commit: ${error.message}`)
+}
+
 /**
  * Traverses commit history backwards along the parent_commit_id chain
  * starting from a specific commit (e.g. a branch head).

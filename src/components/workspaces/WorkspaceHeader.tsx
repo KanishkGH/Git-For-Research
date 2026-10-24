@@ -11,6 +11,7 @@ export interface WorkspaceHeaderProps {
   artifactCount: number
   onNewArtifact: () => void
   onImportArtifact: () => void
+  canEdit: boolean
 }
 
 export function WorkspaceHeader({
@@ -19,6 +20,7 @@ export function WorkspaceHeader({
   artifactCount,
   onNewArtifact,
   onImportArtifact,
+  canEdit,
 }: WorkspaceHeaderProps) {
   const formattedDate = new Date(workspace.created_at).toLocaleDateString(
     'en-US',
@@ -118,7 +120,7 @@ export function WorkspaceHeader({
         </div>
 
         {/* Header Action Group */}
-        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+        {canEdit && <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
           <Button variant="outline" size="sm" onClick={onNewArtifact}>
             <svg
               className="w-3.5 h-3.5 mr-1 text-slate-600 dark:text-slate-400"
@@ -152,7 +154,7 @@ export function WorkspaceHeader({
             </svg>
             Import File
           </Button>
-        </div>
+        </div>}
       </div>
 
       {/* Workspace Team Members Section */}

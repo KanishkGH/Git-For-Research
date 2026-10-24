@@ -42,7 +42,7 @@ Modern research is fragmented. Documents live in Google Docs, PDFs pile up in fo
 
 ## Current Status
 
-Workspaces, artifact ingestion, commit history, branching, semantic diffs, and merges are implemented. Concurrent editing and AI search remain planned.
+Workspaces, artifact ingestion, commit history, branching, semantic diffs, and merges have been manually tested. Collaborative editing and research search are implemented in code. Migrations 008–011 were reported applied to the Supabase project; service configuration and live multi-user verification remain open.
 
 See [PROGRESS.md](./PROGRESS.md) for a detailed checklist of what is complete and what remains.
 
@@ -55,6 +55,7 @@ See [PROGRESS.md](./PROGRESS.md) for a detailed checklist of what is complete an
 - Node.js v18 or higher (v24 recommended)
 - npm
 - A Supabase project (see Environment Variables below)
+- An OpenAI API key for semantic search and grounded answers
 
 ### Setup
 
@@ -68,7 +69,7 @@ npm install
 
 # 3. Configure environment
 cp .env.example .env.local
-# Fill in NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
+# Fill in NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, and OPENAI_API_KEY
 
 # 4. Start the development server
 npm run dev
@@ -78,7 +79,11 @@ Visit [http://localhost:3000](http://localhost:3000) to view the app.
 
 ### Database and sign-in
 
-Run `supabase/migrations/001_identity.sql` through `007_private_access.sql` in order in the Supabase SQL Editor. Migration 007 removes the temporary anonymous demo access and restricts data to the signed-in workspace owner. In Supabase Authentication, create your user account and turn off **Allow new users to sign up** if this is a personal deployment. The app's login page uses that account's email and password.
+Run `supabase/migrations/001_identity.sql` through `011_change_awareness.sql` in order in the Supabase SQL Editor. If migrations 001–007 were already applied, run only 008–011. Migration 008 enables pgvector and version-aware research search. Migration 009 opens access to workspace members. Migration 010 enables durable Yjs updates and Supabase Realtime presence. Migration 011 tracks each researcher's last seen branch head.
+
+For separate researcher accounts, enable email/password sign-ups in Supabase Authentication. Each researcher signs up and signs in once, then the workspace owner adds their email as an editor or viewer. In Supabase Realtime settings, disable public channel access so the private workspace presence policies in migration 010 apply. In Supabase Auth URL Configuration, set the production Site URL after deployment for confirmation links.
+
+On each workspace page, **Index research** processes existing and new commit versions in small batches. The OpenAI key is needed for indexing and research questions. Live editing and presence use the same Supabase project; no separate Yjs server is required.
 
 ---
 
@@ -91,8 +96,8 @@ Copy `.env.example` to `.env.local` and fill in the values.
 | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | Supabase Dashboard → Project Settings → API |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase publishable key (legacy variable name) | Supabase Dashboard → Project Settings → API Keys |
 | `SUPABASE_SERVICE_ROLE_KEY` | Reserved for future work; currently unused | Supabase Dashboard → Project Settings → API Keys |
-| `OPENAI_API_KEY` | Reserved for AI search; currently unused | https://platform.openai.com/api-keys |
-| `YJS_SERVER_URL` | Reserved for live collaboration; currently unused | Self-hosted or managed provider |
+| `OPENAI_API_KEY` | Server-only key for embeddings and research answers | https://platform.openai.com/api-keys |
+| `OPENAI_ANSWER_MODEL` | Optional answer model; defaults to `gpt-6-luna` | OpenAI model documentation |
 
 > ⚠️ **Never commit `.env.local`.** It is in `.gitignore`. Only `.env.example` is committed.
 

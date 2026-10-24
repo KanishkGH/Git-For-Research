@@ -15,6 +15,7 @@ export interface ArtifactHeaderProps {
   onSelectBranch: (branchId: string) => void
   onOpenCreateBranch: () => void
   onOpenMerge?: () => void
+  canEdit: boolean
 }
 
 export function ArtifactHeader({
@@ -27,6 +28,7 @@ export function ArtifactHeader({
   onSelectBranch,
   onOpenCreateBranch,
   onOpenMerge,
+  canEdit,
 }: ArtifactHeaderProps) {
   const shortHash = currentCommit?.id ? currentCommit.id.slice(0, 7) : 'root'
   const canMerge = branches.length > 1
@@ -80,9 +82,10 @@ export function ArtifactHeader({
             activeBranchId={activeBranch.id}
             onSelectBranch={onSelectBranch}
             onOpenCreateBranch={onOpenCreateBranch}
+            canEdit={canEdit}
           />
 
-          <Button
+          {canEdit && <Button
             variant="outline"
             size="sm"
             onClick={onOpenCreateBranch}
@@ -101,9 +104,9 @@ export function ArtifactHeader({
               <path d="M18 9a9 9 0 0 1-9 9" />
             </svg>
             New Branch
-          </Button>
+          </Button>}
 
-          {canMerge && onOpenMerge && (
+          {canEdit && canMerge && onOpenMerge && (
             <Button
               variant="primary"
               size="sm"

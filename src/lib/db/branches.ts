@@ -82,19 +82,25 @@ export async function listArtifactBranches(artifactId: string): Promise<BranchRo
  */
 export async function updateBranchHead(
   branchId: string,
-  headCommitId: string
+  headCommitId: string,
+  expectedHeadCommitId: string | null
 ): Promise<BranchRow> {
   const supabase = await createClient()
-  const { data, error } = await supabase
+  let query = supabase
     .from('branches')
     .update({ head_commit_id: headCommitId })
     .eq('id', branchId)
+  query = expectedHeadCommitId
+    ? query.eq('head_commit_id', expectedHeadCommitId)
+    : query.is('head_commit_id', null)
+  const { data, error } = await query
     .select()
-    .single()
+    .maybeSingle()
 
   if (error) {
     throw new Error(`Failed to update branch head (${branchId} -> ${headCommitId}): ${error.message}`)
   }
+  if (!data) throw new Error('Branch changed while saving. Refresh and retry the commit.')
 
   return data
 }

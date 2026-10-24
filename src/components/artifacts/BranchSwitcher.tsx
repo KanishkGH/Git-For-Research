@@ -9,6 +9,7 @@ export interface BranchSwitcherProps {
   activeBranchId: string
   onSelectBranch: (branchId: string) => void
   onOpenCreateBranch: () => void
+  canEdit: boolean
 }
 
 export function BranchSwitcher({
@@ -16,6 +17,7 @@ export function BranchSwitcher({
   activeBranchId,
   onSelectBranch,
   onOpenCreateBranch,
+  canEdit,
 }: BranchSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -168,7 +170,7 @@ export function BranchSwitcher({
           </div>
 
           {/* Action Footer */}
-          <div className="pt-1 mt-1 border-t border-slate-100 dark:border-slate-800 px-2">
+          {canEdit && <div className="pt-1 mt-1 border-t border-slate-100 dark:border-slate-800 px-2">
             <button
               type="button"
               onClick={() => {
@@ -192,7 +194,7 @@ export function BranchSwitcher({
               </svg>
               Create New Branch
             </button>
-          </div>
+          </div>}
         </div>
       )}
     </div>

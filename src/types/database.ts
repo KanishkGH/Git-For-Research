@@ -174,6 +174,7 @@ export interface Database {
           message: string
           author_id: string | null
           is_merge_commit: boolean
+          search_indexed_at: string | null
           created_at: string
         }
         Insert: {
@@ -187,6 +188,7 @@ export interface Database {
           message: string
           author_id?: string | null
           is_merge_commit?: boolean
+          search_indexed_at?: string | null
           created_at?: string
         }
         Update: {
@@ -200,6 +202,7 @@ export interface Database {
           message?: string
           author_id?: string | null
           is_merge_commit?: boolean
+          search_indexed_at?: string | null
           created_at?: string
         }
         Relationships: [
@@ -482,12 +485,140 @@ export interface Database {
           },
         ]
       }
+      commit_chunks: {
+        Row: {
+          id: string
+          workspace_id: string
+          artifact_id: string
+          commit_id: string
+          chunk_index: number
+          start_offset: number
+          end_offset: number
+          content: string
+          embedding: string
+          embedding_model: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          artifact_id: string
+          commit_id: string
+          chunk_index: number
+          start_offset: number
+          end_offset: number
+          content: string
+          embedding: string
+          embedding_model?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          artifact_id?: string
+          commit_id?: string
+          chunk_index?: number
+          start_offset?: number
+          end_offset?: number
+          content?: string
+          embedding?: string
+          embedding_model?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      collaboration_updates: {
+        Row: {
+          id: number
+          workspace_id: string
+          artifact_id: string
+          branch_id: string
+          update_base64: string
+          is_seed: boolean
+          created_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          workspace_id: string
+          artifact_id: string
+          branch_id: string
+          update_base64: string
+          is_seed?: boolean
+          created_by: string
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          workspace_id?: string
+          artifact_id?: string
+          branch_id?: string
+          update_base64?: string
+          is_seed?: boolean
+          created_by?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      artifact_views: {
+        Row: {
+          user_id: string
+          workspace_id: string
+          artifact_id: string
+          branch_id: string
+          last_seen_commit_id: string | null
+          last_seen_at: string
+        }
+        Insert: {
+          user_id: string
+          workspace_id: string
+          artifact_id: string
+          branch_id: string
+          last_seen_commit_id?: string | null
+          last_seen_at?: string
+        }
+        Update: {
+          user_id?: string
+          workspace_id?: string
+          artifact_id?: string
+          branch_id?: string
+          last_seen_commit_id?: string | null
+          last_seen_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_workspace_member_by_email: {
+        Args: {
+          target_workspace_id: string
+          target_email: string
+          target_role: string
+        }
+        Returns: string
+      }
+      search_commit_chunks: {
+        Args: {
+          search_workspace_id: string
+          query_embedding: string
+          match_count?: number
+        }
+        Returns: Array<{
+          chunk_id: string
+          artifact_id: string
+          artifact_name: string
+          commit_id: string
+          commit_created_at: string
+          chunk_index: number
+          start_offset: number
+          end_offset: number
+          content: string
+          similarity: number
+        }>
+      }
     }
     Enums: {
       workspace_role: WorkspaceRole
@@ -533,3 +664,8 @@ export type MergeRecordUpdate = Database['public']['Tables']['merge_records']['U
 export type PresenceSessionRow = Database['public']['Tables']['presence_sessions']['Row']
 export type PresenceSessionInsert = Database['public']['Tables']['presence_sessions']['Insert']
 export type PresenceSessionUpdate = Database['public']['Tables']['presence_sessions']['Update']
+
+export type CommitChunkRow = Database['public']['Tables']['commit_chunks']['Row']
+export type CommitChunkInsert = Database['public']['Tables']['commit_chunks']['Insert']
+
+export type CollaborationUpdateRow = Database['public']['Tables']['collaboration_updates']['Row']

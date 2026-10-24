@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import type { ArtifactRow, BranchRow, CommitRow } from '@/types/database'
 import { ArtifactHeader } from '@/components/artifacts/ArtifactHeader'
 import { DocumentEditor } from '@/components/artifacts/DocumentEditor'
@@ -8,6 +8,7 @@ import { CommitHistoryList } from '@/components/artifacts/CommitHistoryList'
 import { CreateBranchModal } from '@/components/artifacts/CreateBranchModal'
 import { MergeDialog } from '@/components/merge/MergeDialog'
 import type { CompleteMergeResult } from '@/app/actions/merge'
+import { getChangesSinceLastVisitAction } from '@/app/actions/change-awareness'
 
 export interface ArtifactDetailClientProps {
   workspaceId: string
@@ -16,6 +17,10 @@ export interface ArtifactDetailClientProps {
   initialBranchId: string
   initialCommitsByBranch: Record<string, CommitRow[]>
   initialSelectedCommitId?: string | null
+  referencedCommit?: CommitRow | null
+  userId: string
+  displayName: string
+  canEdit: boolean
 }
 
 export function ArtifactDetailClient({
@@ -25,6 +30,10 @@ export function ArtifactDetailClient({
   initialBranchId,
   initialCommitsByBranch,
   initialSelectedCommitId,
+  referencedCommit,
+  userId,
+  displayName,
+  canEdit,
 }: ArtifactDetailClientProps) {
   // 1. Controlled state
   const [branchList, setBranchList] = useState<BranchRow[]>(initialBranches)
@@ -38,6 +47,7 @@ export function ArtifactDetailClient({
   const [isMergeOpen, setIsMergeOpen] = useState<boolean>(false)
   const [branchSourceCommit, setBranchSourceCommit] =
     useState<CommitRow | null>(null)
+  const [changeNotice, setChangeNotice] = useState<string[]>([])
 
   // 2. Computed values
   const activeBranch =
@@ -50,6 +60,7 @@ export function ArtifactDetailClient({
 
   const currentCommit = selectedCommitId
     ? currentBranchCommits.find((c) => c.id === selectedCommitId) ||
+      (referencedCommit?.id === selectedCommitId ? referencedCommit : null) ||
       activeHeadCommit
     : activeHeadCommit
 
@@ -58,6 +69,22 @@ export function ArtifactDetailClient({
       activeHeadCommit &&
       selectedCommitId !== activeHeadCommit.id
   )
+
+  useEffect(() => {
+    let active = true
+    setChangeNotice([])
+    if (activeBranch?.id) {
+      void getChangesSinceLastVisitAction(workspaceId, artifact.id, activeBranch.id)
+        .then((result) => {
+          if (active && result.success && result.data) {
+            setChangeNotice(result.data.excerpts.length
+              ? result.data.excerpts
+              : ['This branch changed since your last visit.'])
+          }
+        })
+    }
+    return () => { active = false }
+  }, [workspaceId, artifact.id, activeBranch?.id])
 
   // 3. Event Handlers
   const handleSelectBranch = (branchId: string) => {
@@ -139,6 +166,14 @@ export function ArtifactDetailClient({
 
   return (
     <div className="space-y-6">
+      {changeNotice.length > 0 && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-200">
+          <strong>Changed since your last visit</strong>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {changeNotice.map((item, index) => <li key={index}>{item}</li>)}
+          </ul>
+        </div>
+      )}
       {/* Header & Controls */}
       <ArtifactHeader
         workspaceId={workspaceId}
@@ -150,6 +185,7 @@ export function ArtifactDetailClient({
         onSelectBranch={handleSelectBranch}
         onOpenCreateBranch={() => handleOpenCreateBranch(activeHeadCommit || undefined)}
         onOpenMerge={() => setIsMergeOpen(true)}
+        canEdit={canEdit}
       />
 
       {/* Main Two-Column Workspace Layout */}
@@ -164,6 +200,9 @@ export function ArtifactDetailClient({
             isViewingHistory={isViewingHistory}
             onCommitCreated={handleCommitCreated}
             onReturnToHead={handleReturnToHead}
+            userId={userId}
+            displayName={displayName}
+            canEdit={canEdit}
           />
         </div>
 
@@ -175,6 +214,7 @@ export function ArtifactDetailClient({
             selectedCommitId={selectedCommitId}
             onSelectCommit={handleSelectCommit}
             onBranchFromCommit={(commit) => handleOpenCreateBranch(commit)}
+            canEdit={canEdit}
           />
         </div>
       </div>

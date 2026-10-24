@@ -173,6 +173,11 @@ export function MergeDialog({
                   <p className="text-xs opacity-90">
                     Dual-parent merge commit has been created and the target branch HEAD has been advanced.
                   </p>
+                  {successResult.collaborationWarning && (
+                    <p role="alert" className="text-xs text-rose-700 dark:text-rose-300">
+                      The merge was saved, but the live editor could not update: {successResult.collaborationWarning}
+                    </p>
+                  )}
                 </div>
               </div>
 

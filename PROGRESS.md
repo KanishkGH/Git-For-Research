@@ -90,7 +90,14 @@
 
 ## Current Milestone
 
-**Phase 6: Ingestion & Artifact Processing Pipeline** ✅ COMPLETE
+**Phases 7–8: Collaboration and retrieval — implementation in progress**
+
+- Yjs editing, Supabase Realtime presence, workspace member controls, change awareness, chunking, pgvector search, and grounded answers are implemented in code.
+- Migrations 008–011 were reported successfully applied to the live Supabase project; live behavior still needs verification.
+- Multi-user editing, email signup, embeddings, and grounded answers still need manual end-to-end testing before any checklist item above is marked complete.
+- OPENAI_API_KEY is not configured locally yet.
+
+**Previous milestone: Phase 6: Ingestion & Artifact Processing Pipeline** ✅ COMPLETE
 - **Step 6A:** Ingestion Architecture & Design ✅
 - **Step 6B:** Ingestion Parsers & Normalization Engine ✅
 - **Step 6C:** Server Actions & Hardened Compensation Pipeline ✅
@@ -102,4 +109,4 @@
 
 ## Known Issues
 
-_None._
+- Production setup and live verification of phases 7–8 remain open.

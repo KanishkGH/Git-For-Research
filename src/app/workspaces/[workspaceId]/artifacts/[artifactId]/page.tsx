@@ -5,6 +5,8 @@ import { listArtifactBranches } from '@/lib/db/branches'
 import { getCommitById, getCommitHistory } from '@/lib/db/commits'
 import { ArtifactDetailClient } from '@/components/artifacts/ArtifactDetailClient'
 import type { CommitRow } from '@/types/database'
+import { getCurrentUser } from '@/lib/auth/current-user'
+import { getWorkspaceMembership } from '@/lib/db/workspaces'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,6 +46,9 @@ export default async function ArtifactDetailPage({
   if (!workspace) {
     notFound()
   }
+  const user = await getCurrentUser()
+  const membership = await getWorkspaceMembership(workspaceId, user.id)
+  if (!membership) notFound()
 
   // 3. Fetch artifact and verify ownership relationship
   const artifact = await getArtifactById(artifactId)
@@ -59,7 +64,7 @@ export default async function ArtifactDetailPage({
 
   // 5. Determine active branch (query param or default branch)
   const defaultBranch = branches.find((b) => b.is_default) || branches[0]
-  const activeBranch =
+  let activeBranch =
     queryBranch && UUID_REGEX.test(queryBranch)
       ? branches.find((b) => b.id === queryBranch) || defaultBranch
       : defaultBranch
@@ -77,10 +82,16 @@ export default async function ArtifactDetailPage({
 
   // 7. Validate optional queryCommit parameter
   let initialSelectedCommitId: string | null = null
+  let referencedCommit: CommitRow | null = null
   if (queryCommit && UUID_REGEX.test(queryCommit)) {
     const inspectedCommit = await getCommitById(queryCommit)
     if (inspectedCommit && inspectedCommit.artifact_id === artifactId) {
       initialSelectedCommitId = inspectedCommit.id
+      referencedCommit = inspectedCommit
+      const containingBranch = branches.find((branch) =>
+        initialCommitsByBranch[branch.id]?.some((commit) => commit.id === inspectedCommit.id)
+      )
+      if (containingBranch) activeBranch = containingBranch
     }
   }
 
@@ -93,6 +104,10 @@ export default async function ArtifactDetailPage({
         initialBranchId={activeBranch.id}
         initialCommitsByBranch={initialCommitsByBranch}
         initialSelectedCommitId={initialSelectedCommitId}
+        referencedCommit={referencedCommit}
+        userId={user.id}
+        displayName={user.display_name}
+        canEdit={membership.role !== 'viewer'}
       />
     </div>
   )

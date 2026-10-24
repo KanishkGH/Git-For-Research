@@ -8,6 +8,7 @@ export interface CommitHistoryListProps {
   selectedCommitId: string | null
   onSelectCommit: (commit: CommitRow) => void
   onBranchFromCommit: (commit: CommitRow) => void
+  canEdit: boolean
 }
 
 export function CommitHistoryList({
@@ -16,6 +17,7 @@ export function CommitHistoryList({
   selectedCommitId,
   onSelectCommit,
   onBranchFromCommit,
+  canEdit,
 }: CommitHistoryListProps) {
   if (commits.length === 0) {
     return (
@@ -129,7 +131,7 @@ export function CommitHistoryList({
                     {isSelected ? 'Currently Viewing' : 'Inspect Snapshot'}
                   </button>
 
-                  <button
+                  {canEdit && <button
                     type="button"
                     onClick={() => onBranchFromCommit(commit)}
                     className="text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer font-medium"
@@ -148,7 +150,7 @@ export function CommitHistoryList({
                       <path d="M18 9a9 9 0 0 1-9 9" />
                     </svg>
                     Branch here
-                  </button>
+                  </button>}
                 </div>
               </div>
             </div>

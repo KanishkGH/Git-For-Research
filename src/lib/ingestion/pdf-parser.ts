@@ -27,14 +27,22 @@ export class PdfParser implements ArtifactParser {
 
       let pdfData: { numpages: number; text: string }
       try {
-        // Dynamically require pdf-parse on server side to handle CommonJS export cleanly
+        // Load the Node canvas worker before pdf-parse so PDF.js has DOMMatrix.
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const pdfParse = require('pdf-parse')
-        pdfData = await pdfParse(buffer)
+        const { CanvasFactory } = require('pdf-parse/worker')
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { PDFParse } = require('pdf-parse')
+        const parser = new PDFParse({ data: new Uint8Array(buffer), CanvasFactory })
+        try {
+          const result = await parser.getText()
+          pdfData = { numpages: result.total, text: result.text }
+        } finally {
+          await parser.destroy()
+        }
       } catch (pdfErr) {
         return {
           success: false,
-          error: `Corrupt or invalid PDF file: ${pdfErr instanceof Error ? pdfErr.message : 'Extraction error'}`,
+          error: `Could not extract text from PDF: ${pdfErr instanceof Error ? pdfErr.message : 'Extraction error'}`,
           code: 'PDF_EXTRACTION_FAILED',
         }
       }

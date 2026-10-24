@@ -16,6 +16,7 @@ export interface ArtifactListProps {
   onCloseCreateModal: () => void
   onOpenImportModal: () => void
   onCloseImportModal: () => void
+  canEdit: boolean
 }
 
 export function ArtifactList({
@@ -27,6 +28,7 @@ export function ArtifactList({
   onCloseCreateModal,
   onOpenImportModal,
   onCloseImportModal,
+  canEdit,
 }: ArtifactListProps) {
   return (
     <div className="space-y-4">
@@ -40,7 +42,7 @@ export function ArtifactList({
             All version-controlled documents, PDFs, and chat transcripts in this workspace.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        {canEdit && <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={onOpenCreateModal}>
             <svg
               className="w-3.5 h-3.5 mr-1 text-slate-600 dark:text-slate-400"
@@ -74,7 +76,7 @@ export function ArtifactList({
             </svg>
             Import File
           </Button>
-        </div>
+        </div>}
       </div>
 
       {/* Main Content Area */}
@@ -102,7 +104,7 @@ export function ArtifactList({
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-sm">
             Import a Markdown paper, PDF draft, or conversation transcript to begin version-controlling research.
           </p>
-          <div className="mt-5 flex items-center gap-3">
+          {canEdit && <div className="mt-5 flex items-center gap-3">
             <Button variant="outline" size="sm" onClick={onOpenCreateModal}>
               Create Manually
             </Button>
@@ -122,7 +124,7 @@ export function ArtifactList({
               </svg>
               Import File
             </Button>
-          </div>
+          </div>}
         </div>
       ) : (
         /* Artifact Grid */
@@ -134,18 +136,18 @@ export function ArtifactList({
       )}
 
       {/* Manual Creation Modal */}
-      <CreateArtifactModal
+      {canEdit && <CreateArtifactModal
         workspaceId={workspaceId}
         isOpen={isCreateModalOpen}
         onClose={onCloseCreateModal}
-      />
+      />}
 
       {/* Raw File Import Modal */}
-      <ImportArtifactModal
+      {canEdit && <ImportArtifactModal
         workspaceId={workspaceId}
         isOpen={isImportModalOpen}
         onClose={onCloseImportModal}
-      />
+      />}
     </div>
   )
 }
