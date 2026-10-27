@@ -4,6 +4,7 @@
 
 - **Live application:** https://git-for-researchh.vercel.app
 - **Source code:** https://github.com/KanishkGH/Git-For-Research
+- **Demo video:** https://drive.google.com/file/d/1gMVThTnXi7FP6dH84pLIr7H9uCIawFA0/view?usp=drivesdk
 - **Demo and live test guide:** [DEMO.md](./DEMO.md)
 - **Implementation status:** [PROGRESS.md](./PROGRESS.md)
 
