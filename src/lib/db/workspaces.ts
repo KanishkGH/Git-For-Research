@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { createClient } from '@/lib/supabase/server'
 import type {
   WorkspaceInsert,
@@ -12,29 +13,40 @@ import type {
  */
 export async function createWorkspace(workspace: WorkspaceInsert): Promise<WorkspaceRow> {
   const supabase = await createClient()
+  const workspaceId = randomUUID()
 
-  // 1. Create workspace
-  const { data: createdWorkspace, error: wsError } = await supabase
+  // Insert without RETURNING. The SELECT policy calls a STABLE membership
+  // function, which cannot see this row until the insert statement finishes.
+  const { error: wsError } = await supabase
     .from('workspaces')
-    .insert(workspace)
-    .select()
-    .single()
+    .insert({ ...workspace, id: workspaceId })
 
   if (wsError) {
     throw new Error(`Failed to create workspace: ${wsError.message}`)
   }
 
-  // 2. Automatically register creator as 'owner' in workspace_members
+  // Register the creator as an owner after the workspace is visible.
   const { error: memberError } = await supabase
     .from('workspace_members')
     .insert({
-      workspace_id: createdWorkspace.id,
-      user_id: createdWorkspace.owner_id,
+      workspace_id: workspaceId,
+      user_id: workspace.owner_id,
       role: 'owner',
     })
 
   if (memberError) {
+    // Avoid leaving a workspace that the owner cannot see in the dashboard.
+    await supabase.from('workspaces').delete().eq('id', workspaceId)
     throw new Error(`Failed to add workspace owner membership: ${memberError.message}`)
+  }
+
+  const { data: createdWorkspace, error: readError } = await supabase
+    .from('workspaces')
+    .select('*')
+    .eq('id', workspaceId)
+    .single()
+  if (readError) {
+    throw new Error(`Workspace was created but could not be loaded: ${readError.message}`)
   }
 
   return createdWorkspace

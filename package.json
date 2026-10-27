@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --test src/lib/diff/semantic-diff.test.mjs src/lib/ingestion/parsers.test.mjs src/lib/retrieval/chunk-content.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

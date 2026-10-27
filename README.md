@@ -1,136 +1,87 @@
 # Git for Research
 
-Git for Research is a research collaboration and versioning system inspired by Git. It treats research artifacts such as documents, PDFs and LLM conversations as versioned objects that can be branched, compared, merged, collaboratively edited and searched.
+Git for Research is a web app for keeping research documents and conversations organized as versioned artifacts. A researcher can import a file, save named snapshots, explore an idea on a branch, compare changes, resolve a merge conflict, collaborate on a live draft, and ask questions over indexed research with links to source versions.
 
----
+This is a course project built with Next.js, React, TypeScript, Supabase PostgreSQL, Supabase Realtime, Yjs, and OpenAI. It uses Git concepts for research content; it is not a Git client or a Git repository host.
 
-## Project Overview
+## Problem and target users
 
-Modern research is fragmented. Documents live in Google Docs, PDFs pile up in folders, ChatGPT and Claude conversations are lost, and multiple researchers silently overwrite each other's work. Git for Research applies the concepts that made software development collaboration tractable — versioning, branching, merging, conflict detection — to research artifacts.
+Research notes, papers, and AI conversations are often scattered across files and chat histories. It is hard for a student or small research team to see how a finding changed, explore a different direction without overwriting work, or trace an answer back to a specific version. This application is for students and research teams who need a shared, inspectable history of their work.
 
----
+## Solution and main workflows
 
-## Core Features
+1. **Collect research:** create a workspace and import readable documents, PDFs, conversation exports, or code files as artifacts.
+2. **Develop ideas safely:** edit an artifact, save named commits, inspect history and diffs, branch from a version, and merge changes with visible conflict resolution.
+3. **Work together:** invite editors or viewers, edit a shared draft with live presence, and review changes since the last visit.
+4. **Find evidence:** index commit versions, ask a research question, and open the cited source versions.
 
-| Feature | Description |
-|---------|-------------|
-| **Ingestion** | Upload Markdown, PDFs, ChatGPT exports, and Claude exports |
-| **Versioning** | Discrete commits with human-readable semantic diffs |
-| **Branching** | Fork research into divergent lines of inquiry |
-| **Merging** | Merge branches; surface clear conflicts when they exist |
-| **Concurrent Editing** | CRDT-based (Yjs) concurrent editing with live presence |
-| **Retrieval** | Semantic search across all artifacts and versions |
-| **Research Query** | Ask questions; get answers grounded in your research history |
+## What the app does
 
----
+| Area | Current implementation |
+| --- | --- |
+| Accounts and workspaces | Google sign-in through Supabase Auth; create workspaces; add existing signed-in users as editors or viewers |
+| Import | Markdown, plain text, text-extractable PDFs, ChatGPT and Claude JSON conversation exports, and selected source-code files (up to 3 MB) |
+| Version history | Each new artifact receives an initial commit. Editors can save later snapshots with a message and inspect earlier versions. |
+| Branches and merges | Create a branch from a commit, compare line and paragraph changes, run a three-way merge, resolve conflicts, and record a merge commit. |
+| Live collaboration | Yjs text updates are stored in PostgreSQL and streamed through Supabase Realtime. The editor shows who is viewing or editing. |
+| Change awareness | When a researcher returns to a branch, the app summarizes changes since the last recorded visit. |
+| Research query | Editors index commit content into pgvector with OpenAI embeddings. Members can ask a question and receive an answer with links to source commits. |
 
-## Technology Stack
+**Verification status:** the production build, lint check, and local tests for parsers, chunking, diff, and merge pass. Live OAuth, database writes, two-user Realtime editing, raw-file storage, and OpenAI answers still need an end-to-end check in the configured Supabase project. See [PROGRESS.md](./PROGRESS.md) and [DEMO.md](./DEMO.md).
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | Next.js 15, React 19, TypeScript, Tailwind CSS |
-| Backend | Next.js API Routes (server-side) |
-| Database | PostgreSQL via Supabase |
-| Semantic Search | pgvector (Supabase extension) |
-| File Storage | Supabase Storage |
-| Concurrency | Yjs (CRDT) |
-| Embeddings | OpenAI embedding model |
-| LLM | OpenAI |
-| PDF Parsing | text extraction library (TBD) |
+## Architecture and deployment
 
----
+The browser renders the Next.js interface. Server actions validate writes and use a signed-in Supabase client; PostgreSQL stores workspaces, artifacts, commits, branch heads, merge records, collaboration updates, and search vectors. Row-level security controls access. Supabase Realtime distributes Yjs updates and presence. OpenAI supplies embeddings and grounded answer generation. See [ARCHITECTURE.md](./ARCHITECTURE.md) for the data flow and boundaries.
 
-## Current Status
+- **Deployed application:** [git-for-researchh.vercel.app](https://git-for-researchh.vercel.app)
+- **Source repository:** [Git-For-Research on GitHub](https://github.com/KanishkGH/Git-For-Research)
 
-Workspaces, artifact ingestion, commit history, branching, semantic diffs, and merges have been manually tested. Collaborative editing and research search are implemented in code. Migrations 008–011 were reported applied to the Supabase project; service configuration and live multi-user verification remain open.
+The application is deployed on Vercel. To deploy a copy, import this repository into Vercel, configure the environment variables below for the Production environment, apply the Supabase migrations, create the private `artifacts` Storage bucket, configure Google OAuth callback URLs for the deployment domain, and redeploy after changing environment variables. The login page was reachable on 2026-10-27; authenticated workflows still require the live checks in [DEMO.md](./DEMO.md).
 
-See [PROGRESS.md](./PROGRESS.md) for a detailed checklist of what is complete and what remains.
+## Run locally
 
----
-
-## Local Development
-
-### Prerequisites
-
-- Node.js v18 or higher (v24 recommended)
-- npm
-- A Supabase project (see Environment Variables below)
-- An OpenAI API key for semantic search and grounded answers
-
-### Setup
+Requirements: Node.js 24 for the included TypeScript-importing test runner, npm, a Supabase project, and a Google OAuth client. OpenAI credentials are required only for indexing and research answers.
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/KanishkGH/Git-For-Research.git
-cd Git-For-Research
-
-# 2. Install dependencies
 npm install
-
-# 3. Configure environment
 cp .env.example .env.local
-# Fill in NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, and OPENAI_API_KEY
-
-# 4. Start the development server
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to view the app.
+Fill in `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local`. Set `OPENAI_API_KEY` to use research indexing and answers. `OPENAI_ANSWER_MODEL` is optional. `SUPABASE_SERVICE_ROLE_KEY` is currently unused and is not needed to run the app. Never commit `.env.local`.
 
-### Database and sign-in
+Apply [Supabase migrations](./supabase/migrations) **001 through 012 in numerical order** in the Supabase SQL Editor. Migration 008 enables pgvector search, 009 enables workspace member access, 010 adds durable Yjs updates and Realtime policies, 011 records the last seen branch head, and 012 lets a new workspace owner read the inserted row immediately. Apply only migrations missing from an existing database.
 
-Run `supabase/migrations/001_identity.sql` through `011_change_awareness.sql` in order in the Supabase SQL Editor. If migrations 001–007 were already applied, run only 008–011. Migration 008 enables pgvector and version-aware research search. Migration 009 opens access to workspace members. Migration 010 enables durable Yjs updates and Supabase Realtime presence. Migration 011 tracks each researcher's last seen branch head.
+For Google sign-in:
 
-### Google sign-in setup
+1. Enable Google in Supabase Authentication → Providers and configure its client ID and secret.
+2. Add the Supabase OAuth callback URL shown in that provider's settings to the Google OAuth client's authorized redirect URIs.
+3. In Supabase Authentication → URL Configuration, add the app callback URL, for example `http://localhost:3000/auth/callback`, to Redirect URLs. Set Site URL to the deployed app origin when deploying.
+4. In Supabase Realtime settings, disable public channel access so the private workspace presence policies apply.
 
-1. In Google Cloud, configure the OAuth consent screen and create an OAuth client of type **Web application**. Add your deployed app origin (for example, `https://your-app.example.com`) to **Authorized JavaScript origins**. Add `http://localhost:3000` while testing locally.
-2. In Supabase Authentication → Providers → Google, enable Google and copy the Supabase callback URL shown there (usually `https://<project-ref>.supabase.co/auth/v1/callback`). Add **that URL** to the Google client's **Authorized redirect URIs**, then enter its Client ID and Client Secret in Supabase. Keep the Google Client Secret in Google Cloud and Supabase, not in this repository or the app's environment variables.
-3. In Supabase Authentication → URL Configuration, set **Site URL** to your deployed app origin and add `https://your-app.example.com/auth/callback` to **Redirect URLs**. Add `http://localhost:3000/auth/callback` for local testing. Add each preview deployment's callback URL if you use previews.
-4. Deploy this code, then sign in with Google at `/login`. Each researcher signs in once before the workspace owner adds their Google account email as an editor or viewer. Supabase automatically links an existing email/password account when the Google account has the same verified email; check existing users before switching off the email provider.
+The import action attempts to save the original file in a private Supabase Storage bucket named `artifacts`. **Create that bucket manually if you need raw-file retention; the migrations do not create it.** If the upload fails, the app still saves the extracted text as a commit and reports the artifact as imported. A text-extractable PDF is required; OCR is not implemented.
 
-In Supabase Realtime settings, disable public channel access so the private workspace presence policies in migration 010 apply.
+Open [http://localhost:3000](http://localhost:3000), sign in, and create a workspace. An owner can add another researcher after that person has signed in once, creating their app user record.
 
-On each workspace page, **Index research** processes existing and new commit versions in small batches. The OpenAI key is needed for indexing and research questions. Live editing and presence use the same Supabase project; no separate Yjs server is required.
+## Checks
 
----
-
-## Environment Variables
-
-Copy `.env.example` to `.env.local` and fill in the values.
-
-| Variable | Description | Where to get it |
-|----------|-------------|-----------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | Supabase Dashboard → Project Settings → API |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase publishable key (legacy variable name) | Supabase Dashboard → Project Settings → API Keys |
-| `SUPABASE_SERVICE_ROLE_KEY` | Reserved for future work; currently unused | Supabase Dashboard → Project Settings → API Keys |
-| `OPENAI_API_KEY` | Server-only key for embeddings and research answers | https://platform.openai.com/api-keys |
-| `OPENAI_ANSWER_MODEL` | Optional answer model; defaults to `gpt-6-luna` | OpenAI model documentation |
-
-> ⚠️ **Never commit `.env.local`.** It is in `.gitignore`. Only `.env.example` is committed.
-
----
-
-## Team Development Workflow
-
-Two developers share this repository as the source of truth.
-
-```
-Developer 1 (primary laptop)
-  → implements features
-  → commits and pushes to GitHub
-
-Developer 2 (secondary laptop)
-  → clones/pulls from GitHub
-  → continues development
+```bash
+npm run lint
+npm test
+npm run build
 ```
 
-### Branching Convention
+The tests cover representative parser input, chunk source offsets, line diff, clean merge, and merge conflict detection. They do not replace an authenticated browser test against Supabase and OpenAI.
 
-- `main` — stable, working state
-- `dev/feature-name` — active feature branches
+## Project documents
 
-### Portability Rules
+- [ARCHITECTURE.md](./ARCHITECTURE.md): current data flow and implementation boundaries
+- [DEMO.md](./DEMO.md): presentation walkthrough and live verification checklist
+- [PROGRESS.md](./PROGRESS.md): what was checked and what still needs external verification
 
-- No machine-specific secrets in any committed file
-- All configuration via environment variables
-- `node_modules/`, `.next/`, and `.env.local` are in `.gitignore` and are never committed
+## Current limitations
+
+- Research search requires a server-side OpenAI key and manual indexing from the workspace page; it is not automatic on every commit.
+- Live collaboration depends on Supabase Realtime and private channel configuration. Test it with two signed-in accounts before presenting.
+- Original file storage is best effort. The canonical extracted text is the versioned content.
+- Diff and merge operate on text lines and paragraphs; they do not understand document meaning. Commit ancestry traversal is capped at 50 commits per branch for the merge preparation path.

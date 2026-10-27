@@ -1,112 +1,43 @@
-# Progress
+# Progress and verification
 
-> **Rule:** Only mark an item complete after it has been implemented AND manually tested.
+Updated 2026-10-27. **Implemented** means the feature has code and UI. **Locally verified** means a local automated check passed. **Live verification pending** means a signed-in browser check against the configured external services has not been completed during this review.
 
----
+## Current status
 
-## Foundation
+| Feature | Implementation | Verification |
+| --- | --- | --- |
+| Google sign-in and workspace roles | Implemented | Workspace creation hit a production RLS error; migration 012 and a code fix are prepared, live retry pending |
+| Markdown, plain-text, ChatGPT, and Claude parsing | Implemented | Representative parser tests pass |
+| Text-extractable PDF import | Implemented | Live import pending |
+| Raw-file upload to Supabase Storage | Best-effort implementation | Private `artifacts` bucket is visible in the Supabase dashboard; live upload pending |
+| Commit snapshots and branch heads | Implemented | Build passes; live database flow pending |
+| Semantic diff and three-way merge | Implemented | Local diff, clean merge, and conflict tests pass; live UI flow pending |
+| Yjs editing and live presence | Implemented | Two-user Realtime check pending |
+| Change awareness | Implemented | Live two-user check pending |
+| Chunking and source offsets | Implemented | Local chunk tests pass |
+| pgvector indexing and grounded answers | Implemented | A local OpenAI key is present, but live indexing and answer generation remain unverified |
 
-- [x] Repository exists and is connected to GitHub
-- [x] Next.js 15 initialized (TypeScript, Tailwind, App Router, src/)
-- [x] TypeScript configured
-- [x] Tailwind CSS configured
-- [x] ESLint configured
-- [x] .gitignore in place (node_modules, .next, secrets excluded)
-- [x] .env.example created (safe template, no secrets)
-- [x] README.md
-- [x] ARCHITECTURE.md
-- [x] PROGRESS.md
-- [x] DEMO.md
+## Checks run
 
----
+- `npm run lint`: passed.
+- `npm run build`: passed.
+- `npm test`: eight local tests pass across parser, chunking, diff, and merge modules.
+- Local HTTP smoke check: `/login` returns HTTP 200 and an unauthenticated request to `/` redirects to `/login`.
+- Public Vercel login page at `https://git-for-researchh.vercel.app/login`: HTTP 200 on 2026-10-27. This does not verify authenticated workflows.
 
-## Ingestion — 15% (Phase 6) ✅
+These checks do not establish that every external integration works. The most useful next action is the end-to-end walkthrough in [DEMO.md](./DEMO.md) using two signed-in accounts.
 
-- [x] Markdown / plaintext file ingestion & normalization (`src/lib/ingestion/markdown-parser.ts`)
-- [x] PDF ingestion (text extraction pipeline via `pdf-parse` in `src/lib/ingestion/pdf-parser.ts`)
-- [x] ChatGPT export parser (recursive mapping tree → canonical dialogue transcript in `src/lib/ingestion/chatgpt-parser.ts`)
-- [x] Claude export parser (Anthropic message array → canonical dialogue transcript in `src/lib/ingestion/claude-parser.ts`)
-- [x] Common normalized Artifact representation (`src/lib/ingestion/`)
-- [x] Drag-and-drop file upload & extraction preview UI (`src/components/artifacts/ImportArtifactModal.tsx`)
-- [x] Codebase script ingestion (.py, .ts, .js, .rs, .go)
-- [x] Ingestion Server Action with cascade rollback (`src/app/actions/ingest.ts`)
+## Submission tasks
 
----
+1. Run every live pass criterion in [DEMO.md](./DEMO.md) and record the outcome.
+2. Add the key to the Vercel Production environment and verify indexing and answers if those features will be demonstrated.
+3. Import a new file and verify that the original appears in the private `artifacts` Storage bucket if raw-file retention is part of the demonstration.
+4. Check Google callback URLs and private Realtime configuration on the deployed environment.
 
-## Versioning Engine — 35% (Highest Weighted) ✅
+## Known limits
 
-- [x] Artifact data model (`artifacts` table & typed access layer) — *Phase 1-3*
-- [x] Commit / version data model (`commits` table & typed access layer) — *Phase 1-3*
-- [x] Content hashing (Deterministic SHA-256) — *Phase 4*
-- [x] Initial commit on artifact creation (Commit v1.0) — *Phase 3*
-- [x] Commit history (vertical timeline, snapshot inspection, navigation) — *Phase 4*
-- [x] Branching (create branch, branch switcher, branch-from-history) — *Phase 4*
-- [x] Semantic diff (human-readable, paragraph/line level via LCS) — *Phase 5*
-- [x] 3-Way Merge (Diff3 coordinate-mapped convergence) — *Phase 5*
-- [x] Conflict detection (incompatible overlapping hunk detection) — *Phase 5*
-- [x] Merge conflict resolution (interactive 3-way resolver UI & dual-parent merge commits) — *Phase 5*
-
----
-
-## Concurrent Context — 20% (Phase 7)
-
-- [ ] Concurrent editing infrastructure
-- [ ] Realtime presence sessions (`presence_sessions` table)
-- [ ] Live presence indicators (who is viewing / editing)
-- [ ] Change awareness ("what changed since I last looked?")
-
----
-
-## Retrieval — 15% (Phase 8)
-
-- [ ] Canonical document chunking
-- [ ] Embedding generation (OpenAI `text-embedding-3-small`)
-- [ ] pgvector storage & similarity search
-- [ ] Cross-artifact retrieval
-- [ ] Version-aware retrieval
-- [ ] LLM research query (grounded answer from research corpus)
-- [ ] Source citations in query results
-
----
-
-## Stretch — 10%
-
-- [ ] Provenance tracking (trace findings back to original artifacts/commits)
-
----
-
-## Demo — 5%
-
-- [ ] End-to-end demo flow works
-- [x] Ingestion demo (upload artifact, see initial commit)
-- [x] Versioning demo (edit, commit, view history)
-- [x] Semantic diff demo (live, human-readable)
-- [x] Branch demo (create branch, diverge)
-- [x] Merge conflict demo (live conflict surfaced clearly)
-- [ ] Concurrent editing demo (two users, real-time presence)
-- [ ] Research query demo (ask question, get grounded answer with sources)
-
----
-
-## Current Milestone
-
-**Phases 7–8: Collaboration and retrieval — implementation in progress**
-
-- Yjs editing, Supabase Realtime presence, workspace member controls, change awareness, chunking, pgvector search, and grounded answers are implemented in code.
-- Migrations 008–011 were reported successfully applied to the live Supabase project; live behavior still needs verification.
-- Multi-user editing, email signup, embeddings, and grounded answers still need manual end-to-end testing before any checklist item above is marked complete.
-- OPENAI_API_KEY is not configured locally yet.
-
-**Previous milestone: Phase 6: Ingestion & Artifact Processing Pipeline** ✅ COMPLETE
-- **Step 6A:** Ingestion Architecture & Design ✅
-- **Step 6B:** Ingestion Parsers & Normalization Engine ✅
-- **Step 6C:** Server Actions & Hardened Compensation Pipeline ✅
-- **Step 6D:** Ingestion UI (`ImportArtifactModal.tsx` & Workspace Integration) ✅
-- **Step 6E:** Live End-to-End Database Integrity & Cascade Audit ✅
-- **Step 6F:** Checkpoint & Commit (Pending)
-
----
-
-## Known Issues
-
-- Production setup and live verification of phases 7–8 remain open.
+- On 2026-10-27, production workspace creation returned a row-level security error. Migration 012 adds a direct owner read policy, and the workspace insert now reads its row in a separate statement. Neither fix has been applied or verified in production during this review.
+- The app versions extracted text snapshots. It does not offer OCR for scanned PDFs.
+- Original-file upload can fail while the artifact import still succeeds with extracted text.
+- Research indexing is manual and uses external OpenAI requests.
+- Commit ancestry reads are currently limited to 50 parent commits in the merge preparation path.

@@ -1,122 +1,36 @@
-# Demo Plan
+# Demo and live verification
 
-> ⚠️ **This is the planned demo flow. None of this is currently implemented.**
-> This document will be updated as features are built and the demo is refined.
+The following flow matches features present in the code. **Run it on the actual Supabase project before presenting:** local tests and a successful build do not verify OAuth, database writes, Realtime, Storage, or OpenAI.
 
----
+## Prepare
 
-## Demo Goal
+1. Apply database migrations 001–012 and configure Google sign-in and private Supabase Realtime as described in [README.md](./README.md).
+2. Sign in with two different Google accounts. Create a workspace with the first account, then add the second account as an editor. To show viewer restrictions, add a third account as a viewer if available.
+3. Prepare a small Markdown document with three distinct paragraphs, a text-extractable PDF, and a valid ChatGPT or Claude JSON export. Use realistic research content and keep each file under 3 MB.
+4. If demonstrating research answers, set `OPENAI_API_KEY`, confirm the OpenAI account can make embedding and answer requests, and index the workspace before the presentation.
+5. Create branch edits in advance if a reliable live merge conflict is needed.
 
-Demonstrate in ~10 minutes that Git for Research applies the core Git concepts — versioning, branching, diffing, merging, conflict detection, concurrent collaboration — to research artifacts, and adds semantic search on top.
+## Submission video walkthrough (target 3–5 minutes)
 
-The two must-hit moments:
-1. **Live semantic diff** — human-readable, not byte-level
-2. **Live merge conflict** — clear, surfaced conflict between two branches
+1. **Problem and user (20–30 seconds):** explain that small research teams need a history they can inspect and branch safely.
+2. **Collect and version (60–75 seconds):** sign in, show a prepared workspace, import a short document, edit it, save a named commit, and open the history.
+3. **Branch and merge (90–120 seconds):** show a prepared alternate branch, a readable diff, an overlapping edit, the conflict resolver, and the resulting merge commit.
+4. **Collaboration or research query (45–75 seconds):** show the one advanced flow that was verified live before recording. For collaboration, use two signed-in accounts. For research query, index beforehand and open a citation.
+5. **Close (10–15 seconds):** point to the deployed app and source repository.
 
----
+Keep the full checklist below for private testing; the video should show a few reliable workflows rather than attempt every feature. Do not record a flow that has not passed its live check.
 
-## Planned Demo Flow
+## Pass criteria for a live check
 
-### Step 1 — Open Workspace
-- Open the Git for Research app
-- Show an existing workspace for a research project
-- Briefly explain the concept: research artifacts as versioned objects
+| Flow | Confirm |
+| --- | --- |
+| OAuth | Both accounts can sign in and return to the app. |
+| Workspace roles | Owner can add a member; editor can import and commit; viewer cannot edit. |
+| Import | Each supported sample produces readable canonical text and an initial commit. |
+| Storage, if required | The original file exists in the private `artifacts` bucket. An artifact appearing in the UI alone does not prove raw storage succeeded. |
+| Versioning | New commit appears in history and survives a page reload. |
+| Merge | Non-overlapping edits merge; overlapping edits produce a visible conflict; resolution creates a merge commit. |
+| Collaboration | Two signed-in accounts see live presence and text updates; edits survive a reload. |
+| Search | Indexing completes, a question returns an answer, and citation links open the correct versions. |
 
-### Step 2 — Upload Research Artifacts
-- Upload a Markdown research document
-- Upload a PDF paper
-- Upload a ChatGPT conversation export
-- Show all three appear as artifacts in the workspace
-
-### Step 3 — Show Artifacts as Versioned Objects
-- Click on an artifact
-- Show it has an initial commit (version 1) created at upload time
-- Show the commit message, timestamp, and author
-
-### Step 4 — Create Commits (Versioning)
-- Edit the Markdown document
-- Save / commit the change
-- Show the new commit appears in the history
-
-### Step 5 — Show Commit History
-- Navigate the commit history for an artifact
-- Show the list of commits with authors, timestamps, messages
-
-### Step 6 — Create a Branch
-- From the current commit, create a branch called `ai-tutors`
-- Explain: this represents a divergent research direction
-
-### Step 7 — Modify Research on a Branch
-- On `ai-tutors` branch, edit the document
-- Add a paragraph about AI tutors
-- Commit the change on this branch
-
-### Step 8 — Show Semantic Diff
-- Compare the `ai-tutors` branch commit to the `main` branch commit
-- **Key demo moment**: Show the semantic diff
-  - Removed sentence highlighted in red
-  - Added sentence highlighted in green
-  - Human-readable, not a byte dump
-
-### Step 9 — Create Another Branch (for conflict)
-- Go back to `main`
-- Create a second branch called `ai-accessibility`
-- On this branch, modify the SAME paragraph that was modified on `ai-tutors`
-- Commit
-
-### Step 10 — Attempt Merge
-- Attempt to merge `ai-tutors` into `main`
-
-### Step 11 — Demonstrate Conflict Detection
-- **Key demo moment**: Show the merge conflict
-  - Both branches modified the same content
-  - Conflict is surfaced clearly with conflict markers
-  - Not silently resolved
-- Show the conflict resolution UI
-
-### Step 12 — Resolve and Merge
-- Resolve the conflict (pick one side or combine)
-- Complete the merge
-- Show the resulting merged commit in history
-
-### Step 13 — Concurrent Editing / Presence
-- Open the same artifact in two browser tabs (simulating two researchers)
-- Show live presence indicators: "Researcher A — editing", "Researcher B — viewing"
-- Type in one tab, watch the other update in real-time
-- No silent overwrites — both changes preserved
-
-### Step 14 — Ask a Research Question
-- Type a question into the research query interface
-  - Example: *"What does our research say about the effectiveness of AI tutors?"*
-- Show the system:
-  - Retrieving relevant chunks from across artifacts
-  - Considering multiple artifact types (document + PDF + conversation)
-  - Considering version history
-
-### Step 15 — Show Answer with Sources
-- Show the LLM-generated answer
-- Show the source citations: which artifact, which version, which section
-
----
-
-## Demo Notes
-
-- Use pre-loaded realistic research content (not Lorem Ipsum) for a convincing demo
-- The merge conflict scenario requires pre-staging conflicting edits
-- Two-browser concurrent editing requires two logged-in mock users (or two tabs with different mock user sessions)
-- Practice the demo at least twice before presenting
-
----
-
-## Demo Timing (Target)
-
-| Section | Target Time |
-|---------|------------|
-| Intro + workspace | 1 min |
-| Ingestion | 1.5 min |
-| Versioning + history | 1.5 min |
-| Branching + semantic diff | 2 min |
-| Merge conflict | 2 min |
-| Concurrent editing | 1 min |
-| Research query | 1.5 min |
-| **Total** | **~10.5 min** |
+Record any failed step in [PROGRESS.md](./PROGRESS.md) before claiming the corresponding live feature works in a submission.
