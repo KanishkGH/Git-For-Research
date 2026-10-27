@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import type { ArtifactRow, BranchRow, CommitRow } from '@/types/database'
 import { ArtifactHeader } from '@/components/artifacts/ArtifactHeader'
 import { DocumentEditor } from '@/components/artifacts/DocumentEditor'
@@ -9,6 +9,8 @@ import { CreateBranchModal } from '@/components/artifacts/CreateBranchModal'
 import { MergeDialog } from '@/components/merge/MergeDialog'
 import type { CompleteMergeResult } from '@/app/actions/merge'
 import { getChangesSinceLastVisitAction } from '@/app/actions/change-awareness'
+import { computeSemanticDiff } from '@/lib/diff/semantic-diff'
+import { SemanticDiffViewer } from '@/components/merge/SemanticDiffViewer'
 
 export interface ArtifactDetailClientProps {
   workspaceId: string
@@ -63,6 +65,18 @@ export function ArtifactDetailClient({
       (referencedCommit?.id === selectedCommitId ? referencedCommit : null) ||
       activeHeadCommit
     : activeHeadCommit
+
+  const previousCommit = currentBranchCommits.find(
+    (commit) => commit.id === currentCommit?.parent_commit_id
+  )
+  const previousContent = previousCommit?.content
+  const currentContent = currentCommit?.content
+  const versionDiff = useMemo(
+    () => previousContent !== undefined && currentContent !== undefined
+      ? computeSemanticDiff(previousContent, currentContent)
+      : null,
+    [previousContent, currentContent]
+  )
 
   const isViewingHistory = Boolean(
     selectedCommitId &&
@@ -218,6 +232,22 @@ export function ArtifactDetailClient({
           />
         </div>
       </div>
+
+      {versionDiff && (
+        <section className="space-y-3" aria-label="Changes from previous version">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            Changes from previous version
+          </h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Comparing the selected snapshot with its parent commit. Green shows additions; red shows removals.
+          </p>
+          <SemanticDiffViewer
+            diffChunks={versionDiff}
+            sourceBranchName="selected version"
+            targetBranchName="previous version"
+          />
+        </section>
+      )}
 
       {/* Create Branch Modal */}
       <CreateBranchModal
